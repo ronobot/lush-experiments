@@ -27,19 +27,18 @@ $(document).ready(function() {
 	
 	var centerX = 400;
 	var centerY = 175;
-	var radius = 100;
-	var sRadius = 5;
+	var radius = 50;
+	var sRadius = 10;
 	
 	var blackX = centerX;
 	var blackY = centerY - radius;
 	var trail = 50;
 	var mover = 0;
 	
-	var planets = 5;
-	var followers = 20;
+	var planets = 2;
+	var followers = 1;
 	var dropoffsize = sRadius / followers;
-	var dropoffcolour = Math.round(255 / followers);
-	console.log(dropoffcolour);
+	var dropoffcolour = 255 / followers;
 	
 	mouseX = centerX;
 	mouseY = centerY;
@@ -58,58 +57,48 @@ $(document).ready(function() {
 		
 		context.clearRect(0, 0, canvas.attr('width'), canvas.attr('height'));
 		
-		/* 
-		// VISIBLE ORBIT
 		context.beginPath();
 		context.arc(mouseX,mouseY,radius,0,Math.PI*2,true);
 		context.closePath();
 		context.strokeStyle = "rgb(128,128,128)";
 		context.stroke();
-		*/
 		
 		for (i=0;i<planets;i++) {
 			
-			/*
-			// ORIGINAL ORBITER
 			var x = mouseX + radius * Math.cos(2 * Math.PI * (i+orbit) / planets);
 			var y = mouseY + radius * Math.sin(2 * Math.PI * (i+orbit) / planets);
 			
 			context.beginPath();
 			context.arc(x,y,sRadius,0,Math.PI*2,true);
 			context.closePath();
-			context.fillStyle = "rgb(255,255,255)";
-			context.fill();
-			*/
+			context.strokeStyle = "rgb(255,255,255)";
+			context.stroke();
 			
 			for (j=0;j<followers;j++) {
 				
 				//console.log("j ", j);
 				
-				var xt = mouseX + radius * Math.cos(2 * Math.PI * (i+(orbit+0.025*(j+1))) / planets);
-				var yt = mouseY + radius * Math.sin(2 * Math.PI * (i+(orbit+0.025*(j+1))) / planets);
+				var xt = mouseX + radius * Math.cos(2 * Math.PI * (i+(orbit-0.05*(j+1))) / planets);
+				var yt = mouseY + radius * Math.sin(2 * Math.PI * (i+(orbit-0.05*(j+1))) / planets);
 				
 				context.beginPath();
-				context.arc(xt,yt,sRadius-dropoffsize*(followers-j),0,Math.PI*2,true);
+				context.arc(xt,yt,sRadius,0,Math.PI*2,true);
 				context.closePath();
 				
-				
-				var colour = 'rgb(' + (0+(j+1)*dropoffcolour) + ',' + (0+(j+1)*dropoffcolour) + ',' + (0+(j+1)*dropoffcolour) + ')';
-				//console.log(colour);
-				context.fillStyle = colour;
-				context.fill();
-				
-				//trail-=0.05
-				/*
 				context.strokeStyle = "rgb(128,128,128)";
 				context.stroke();
+				/*
+				var colour = 'rgb(' + (255-(j+1)*dropoffcolour) + ',' + (255-(j+1)*dropoffcolour) + ',' + (255-(j+1)*dropoffcolour) + ')';
+				console.log(colour);
+				context.fillStyle = colour;
+				context.fill();
 				*/
+				//trail-=0.05
+				
 			}
 			
-			
-			
 		}
-		orbit+=0.025;
-		radius-=0.5;
+		orbit+=0.005;
 		
 		requestAnimationFrame(draw);
 	}

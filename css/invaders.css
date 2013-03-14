@@ -1,0 +1,14 @@
+body {
+  background: #000; }
+
+div {
+  position: relative;
+  top: 20px;
+  left: 20px;
+  width: 260px;
+  height: 300px; }
+
+img {
+  position: absolute;
+  top: 0;
+  left: 0; }
