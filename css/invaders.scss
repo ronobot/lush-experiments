@@ -1,15 +1,33 @@
 body {
 	background:#000;
+	font-family: 'Press Start 2P', cursive;
+	color:#0c0;
+	font-size:2em;
 }
-div {
+.screen {
 	position:relative;
 	top:20px;
 	left:20px;
 	width:260px;
 	height:300px;
+	x-border:1px dashed #0c0;
 }
-img {
+.cannon {
+	position:absolute;
+	bottom:0;
+	left:50%;
+	margin-left:-19px;
+}
+.invader {
 	position:absolute;
 	top:0;
 	left:0;
+}
+.beam {
+	width:2px;
+	height:25px;
+	background:#00CC00;
+	position:absolute;
+	bottom:0;
+	visibility:hidden;
 }
