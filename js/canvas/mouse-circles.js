@@ -6,6 +6,37 @@ $(document).ready(function() {
 	var canvas = $('#can');
 	var context = $("#can")[0].getContext('2d');
 	
+	// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+	// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+	 
+	// requestAnimationFrame polyfill by Erik Möller
+	// fixes from Paul Irish and Tino Zijdel
+	 
+	(function() {
+	    var lastTime = 0;
+	    var vendors = ['ms', 'moz', 'webkit', 'o'];
+	    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+	        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+	        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] 
+	                                   || window[vendors[x]+'CancelRequestAnimationFrame'];
+	    }
+	 
+	    if (!window.requestAnimationFrame)
+	        window.requestAnimationFrame = function(callback, element) {
+	            var currTime = new Date().getTime();
+	            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+	            var id = window.setTimeout(function() { callback(currTime + timeToCall); }, 
+	              timeToCall);
+	            lastTime = currTime + timeToCall;
+	            return id;
+	        };
+	 
+	    if (!window.cancelAnimationFrame)
+	        window.cancelAnimationFrame = function(id) {
+	            clearTimeout(id);
+	        };
+	}());
+
 	var fps = 24;
 	
 	var drawing;
@@ -51,6 +82,20 @@ $(document).ready(function() {
 		mouseX = e.pageX - this.offsetLeft;
 		mouseY = e.pageY - this.offsetTop;
 	});
+	
+	$(document).on("touchstart","#can",function(e) {
+		e.preventDefault();
+		mouseX = event.touches[0].pageX;
+		mouseY = event.touches[0].pageY;
+	});
+	$(document).on("touchmove","#can",function(e) {
+		e.preventDefault();
+		mouseX = event.touches[0].pageX;
+		mouseY = event.touches[0].pageY;
+	})
+	$(document).on("touchend","#can",function(e) {
+		e.preventDefault();
+	})
 	
 	//console.log(canvas.attr('width'));
 	
@@ -111,7 +156,7 @@ $(document).ready(function() {
 		orbit+=0.025;
 		radius-=0.5;
 		
-		requestAnimationFrame(draw);
+		window.requestAnimationFrame(draw);
 	}
 	
 	draw();

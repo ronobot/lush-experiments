@@ -14,7 +14,7 @@ $(document).ready(function() {
 	var xdir = 0;
 	var blownup;
 	var firing;
-	var attack = 30;
+	var beamspeed = 30;
 	
 	function setup(parent) {
 		
@@ -48,12 +48,12 @@ $(document).ready(function() {
 	
 	console.log($('img'))
 	
-	function move(which) {
+	function attack(which) {
 		//console.log(which.offset().left);
 		for (i=0;i<fleet.length;i++) {
 			if (which[i].offset().top > 300) {
 				$('.invader').remove();
-				clearInterval(action);
+				clearInterval(danger);
 				$('.screen').html("GAME OVER");
 				break;
 			} else if (which[i].data("direction") == 0) {
@@ -73,6 +73,7 @@ $(document).ready(function() {
 				//direction = 0;
 				which[i].data("direction",0);
 			}
+			/* 
 			if ($('.beam')) {
 			var beamx = $('.beam').offset().left;
 			var beamy = $('.beam').offset().top - 20;
@@ -90,43 +91,78 @@ $(document).ready(function() {
 				setTimeout(function() { kill(blownup);},1000);
 			}
 			}
+			*/
 		}
-		
+		/*
 		//while ($('.beam').offset().top )
 		if (firing == true && $('.beam').offset().top > 0) {
 			//alert($('.beam').offset().top)
-			$('.beam').offset({top:$('.beam').offset().top -= attack, left: $('.beam').offset().left});
+			$('.beam').offset({top:$('.beam').offset().top -= beamspeed, left: $('.beam').offset().left});
 			//alert($('.beam').offset().top)
 		} else {
 			$('.beam').remove();
 			firing == false;
-			fire();
+			//fire();
 		}
+		*/
+	}
+	
+	function beammove(which) {
+		//alert(which.offset().top);
+		which.offset({top:which.offset().top -= beamspeed, left: which.offset().left});
+		setTimeout( function() { beammove(which);},500);
 		
+		//if ()
+		for (i=0;i<fleet.length;i++) {
+			var beamx = which.offset().left;
+			var beamy = which.offset().top - 20;
+			// - $('.beam').height()
+			var thisx = fleet[i].offset().left;
+			var thisy = fleet[i].offset().top;
+			console.log(beamy, thisy)
+			// 
+			if (thisx < beamx && (thisx+33) > beamx && thisy < beamy && (thisy + 24) > beamy) {
+				console.log(fleet[i].attr('src'));
+				which.remove();
+				//$('.beam').css('visibility','hidden');
+				$(fleet[i]).attr('src','img/blow-up-1-2x.gif');
+				blownup = fleet[i];
+				setTimeout(function() { kill(blownup);},1000);
+			}			
+		}
 	}
 	
 	function kill(which) {
 		$(which).remove();
 		casulties++;
 		if (casulties == fleet.length) {
-			clearInterval(action);
+			clearInterval(danger);
 			$('.screen').html("YOU WIN");
 		}
-		$('.beam').remove();
+		//$('.beam').remove();
 		firing == false;
-		fire();
+		//fire();
 	}
 	
+	// touch-to-kill on invaders
 	$(document).on("touchstart",".invader", function(e) {
-		e.preventDefault();
+		//e.preventDefault();
 		$(this).attr('src','img/blow-up-1-2x.gif');
 		blownup = this
 		setTimeout(function() { kill(blownup);},1000);
 	});
+	// prevent selection defaults
+	document.ontouchstart = function(e){ e.preventDefault(); }
+	/*
+	$(document).on("touchstart","div",function(e) {
+		e.preventDefault();
+	})
 	$(document).on("touchstart",".cannon", function(e) {
 		e.preventDefault();
 		//alert("touch!");
 	})
+	*/
+	// cannon moving
 	$(document).on("touchmove",".cannon",function(e) {
 		e.preventDefault();
 		//alert($(this).offset().left);
@@ -136,6 +172,10 @@ $(document).ready(function() {
 	});
 	$(document).on("touchend",".cannon",function(e) {
 		e.preventDefault();
+		fire();
+	})
+	$(document).on("click",".cannon", function(e) {
+		alert("clicky clicky");
 	})
 	/*
 	$(document).on("touchend",".invader", function(e) {
@@ -154,10 +194,12 @@ $(document).ready(function() {
 		beam.offset({ top:beam.offset().top, left:$('.cannon').offset().left+19});
 		beam.css("visibility","visible");
 		firing = true;
+		beammove(beam);
 	}
 	
 	setup();
 	//var firing = setInterval( function() { fire(); },500);
-	var action = setInterval( function() { move(fleet); },500);
-	fire();
+	var danger = setInterval( function() { attack(fleet); },1000);
+	//var defend = setInterval( function() { defend(); },250);
+	//fire();
 });
