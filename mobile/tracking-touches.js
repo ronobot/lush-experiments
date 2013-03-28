@@ -40,7 +40,9 @@ $(document).ready(function() {
 	var colourwidth = $('canvas').width() / 255;
 	var colourheight = $('canvas').height() / 255;
 
- 	var blocksize = 20;
+ 	var blocksize = 15;
+	var followers = 10;
+	var alphastep = 0.075;
  	var xdiv = $('canvas').width() / blocksize;
  	var ydiv = $('canvas').height() / blocksize;
  	console.log('divisions: ',xdiv,ydiv)
@@ -48,10 +50,10 @@ $(document).ready(function() {
 	var newcolour = "rgba(128,128,128,1)";
 	
 	var touching = false;
-	var touches = new Array();
+	var touches = [];
 	
-	var mx = new Array();
-	var my = new Array();
+	var mx = [];
+	var my = [];
 	
 	function setColour(fx,fy) {
 		newcolour = "rgba(" + fx + "," + fy + ",128,1)"
@@ -89,16 +91,16 @@ $(document).ready(function() {
 	$(document).on("mouseup","canvas",function(e) {
 		//touching = false;
 	});
-	
-	var followers = 2;
-	var alphastep = 0.25;
-	
+		
 	function fingerCross() {
-		for (i=0;i<touches.length;i++) {
+		//for (i=0;i<touches.length;i++) {
+			for (var i=0,touch;touch=touches[i];i++) {
 				
 				//console.log(touches[i].pageX,touches[i].pageY);
-				mx = touches[i].pageX;
-				my = touches[i].pageY;
+				//mx = touches[i].pageX;
+				//my = touches[i].pageY;
+				mx = touch.pageX;
+				my = touch.pageY;
 				
 				var xloc = Math.floor(mx / blocksize);
 				var yloc = Math.floor(my / blocksize);
@@ -106,7 +108,7 @@ $(document).ready(function() {
 								ctx.fillStyle = "rgba(255,255,255,0.75)";
 				ctx.fillRect(xloc*blocksize,yloc*blocksize,blocksize,blocksize);
 				
-				for (j=0;j<followers;j++) {
+				for (var j=0;j<followers;j++) {
 					var xloc1 = xloc - (j+1);
 					var xloc2 = xloc + (j+1);
 					var yloc1 = yloc - (j+1);
@@ -132,7 +134,7 @@ $(document).ready(function() {
 		
 		if (touches.length > 0) {
 			var tlog = new String();
-				for (i=0;i<touches.length;i++){
+				for (var i=0;i<touches.length;i++){
 					tlog += touches[i].identifier + " ";
 					tlog += touches[i].pageX + " ";
 					tlog += touches[i].pageY + " ";
@@ -147,4 +149,5 @@ $(document).ready(function() {
 	}
 	
 	draw();
+	
 });
