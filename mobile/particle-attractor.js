@@ -41,18 +41,19 @@ $(document).ready(function() {
 	
 	/** PARTICLE ATTRACTOR **/
 	
+	var w = $('canvas').width();
+	var h = $('canvas').height();
+	
 	var touches = [];
 	var touching = false;
-	var xt, yt;
-	var count = 300;
+	var count = 100;
+	var assign = 0;
 	var p = [];
 	
-	xt = 200;
-	yt = 200;
-	
-	console.log(touches);
-	console.log((10-20)/5);
-	console.log(Math.sqrt(Math.pow(Math.abs(-2),2) + Math.pow(Math.abs(-3),2)));
+	console.log("Distance test:", 1 < 2);
+	//console.log(touches);
+	//console.log((10-20)/5);
+	//console.log(Math.sqrt(Math.pow(Math.abs(-2),2) + Math.pow(Math.abs(-3),2)));
 	
 	// input sources
 	document.ontouchstart = function(e){ e.preventDefault(); }
@@ -71,66 +72,71 @@ $(document).ready(function() {
 		e.preventDefault();
 		touching = false;
 		touches = event.touches;
-		newTarget();
-		console.log(touches);
 		console.log(touches.length)
+		if (touches.length == 0) {
+			newTarget();
+		}
+		//console.log(touches);
 	});
 
 	// Particle object
 	function Particle(radius,xp,yp,rgb,s) {
 		
+		assign++;
+		this.id = assign;
 		this.size = radius;
 		this.x = xp;
 		this.y = yp;
 		this.colour = rgb;
 		this.speed = s;
+		//console.log(this.speed);
+		this.accel = 0;
 		this.xtarget = this.x;
 		this.ytarget = this.y;
-		this.distance = 0;
+		this.distance = null; // ********************************************** //
 		this.distances = [];
+		this.tracked = false;
+		
 		
 		function move() {
-			/*
 			// if there's a touch!
 			if (touching == true) {
+			if (this.tracked == true) {
+				console.log(this.distance);
+			}
+
+				this.distance = null; // ********************************************** //
+				//console.log("i am touched");
+			
 			// now you need to find out what touch you are closest to!
 				var xn, yn;
 				for (var i=0,touch;touch=touches[i];i++) {
+					//console.log(touches.length);
+					
 					var hyp = Math.sqrt(Math.pow(Math.abs(this.x - touch.pageX),2) + Math.pow(Math.abs(this.y - touch.pageY),2));
 					var sum = Math.abs(this.x - touch.pageX) + Math.abs(this.y - touch.pageY);
-					if (hyp < this.distance) {
-					//if (sum > this.distance) {
-						//this.distance = hyp;
+					//console.log("HYP " + i + " " + hyp);
+					if (hyp < this.distance || this.distance == null) {
+						this.distance = hyp;
 						this.xtarget = touch.pageX;
 						this.ytarget = touch.pageY;
 					}
+					
 				}
-				//this.xtarget = xn;
-				//this.ytarget = yn;
+				this.accel+=0.25;
 			}
 			
-			for (var i=0,touch;touch=touches[i];i++) {
-				var hyp = Math.sqrt(Math.pow(Math.abs(this.x - touch.pageX),2) + Math.pow(Math.abs(this.y - touch.pageY),2));
-				if (hyp > this.distance) {
-					this.distance = hyp;
-					this.xtarget = touch.pageX;
-					this.ytarget = touch.pageY;
-				}
-			}
-			*/
-			if (touching == true) {
-				this.xtarget = touches[0].pageX;
-				this.ytarget = touches[0].pageY;
-			}
+			this.x = this.x - (this.x - this.xtarget)/(this.speed - this.accel);
+			this.y = this.y - (this.y - this.ytarget)/(this.speed - this.accel);
 			
-			this.x = this.x - (this.x - this.xtarget)/this.speed;
-			this.y = this.y - (this.y - this.ytarget)/this.speed;
+			
 			
 			ctx.beginPath();
 			ctx.arc(this.x,this.y,this.size,0,Math.PI*2,true);
 			ctx.closePath();
 			ctx.fillStyle = this.colour;
 			ctx.fill();
+			
 		}
 		
 		this.move = move;
@@ -144,8 +150,9 @@ $(document).ready(function() {
 		
 		for (var i=0,part;part=p[i];i++) {
 			
-			part.xtarget = Math.floor(Math.random() * ($('canvas').width()*3)) - $('canvas').width();
-			part.ytarget = Math.floor(Math.random() * ($('canvas').height()*3)) - $('canvas').height();
+			part.xtarget = Math.floor(Math.random() * (w*3)) - w;
+			part.ytarget = Math.floor(Math.random() * (h*3)) - h;
+			part.accel = 0;
 			
 		}
 		
@@ -155,13 +162,19 @@ $(document).ready(function() {
 	function init() {
 		
 		for (var i=0;i<count;i++) {
-			var xr = Math.floor(Math.random() * ($('canvas').width()*3)) - $('canvas').width();
-			var yr = Math.floor(Math.random() * ($('canvas').height()*3)) - $('canvas').height();
+			var xr = Math.floor(Math.random() * (w*3)) - w;
+			var yr = Math.floor(Math.random() * (h*3)) - h;
 			var spd = Math.random() * (300 - 50) + 50;
+			//console.log(spd);
+			if (i > 0) {
+			
 			var alpha = 50 / spd;
 			var rgba = 'rgba(255,255,255,' + alpha + ')';
 			p[i] = new Particle(2,xr,yr,rgba,spd);
-			
+			} else {
+			p[i] = new Particle(2,xr,yr,'rgba(255,255,255,1)',50);
+			p[i].tracked = true;
+			}
 			//console.log((p[i].x - xt),(p[i].y - yt));
 		}
 		
@@ -172,13 +185,8 @@ $(document).ready(function() {
 	// drawing function
 	function update() {
 		
-		ctx.clearRect(0, 0, $('canvas').width(), $('canvas').height());
+		ctx.clearRect(0, 0, w, h);
 		
-		if (touches.length > 0) {
-			xt = touches[0].pageX;
-			yt = touches[0].pageY;			
-		}
-
 		for (var i=0;i<p.length;i++) {
 			p[i].move();
 		}
