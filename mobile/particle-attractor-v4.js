@@ -43,78 +43,22 @@ $(document).ready(function() {
 	
 	var w = $('canvas').width();
 	var h = $('canvas').height();
-	var fieldsize = 5;
-	var fieldmodifier = 0.5*(fieldsize-1);
+	var fieldsize = 3;
 	
 	var touches = [];
 	var touching = false;
-	var count = 500;
+	var count = 300;
 	var assign = 0;
 	var p = [];
 	
-	var highspeed = 10;
+	var highspeed = 0;
 	var slowspeed = 500;
-	var speedlimit = 1;
 	var speedrange = Math.abs(highspeed - slowspeed);
-	var accelerator = 0.25;
 	
-	var tracker = false;
-	
-	// Particle object
-	function Particle(radius,xp,yp,rgb,s) {
-		
-		assign++;
-		this.id = assign;
-		this.size = radius;
-		this.x = xp;
-		this.y = yp;
-		this.colour = rgb;
-		this.speed = s;
-		this.accel = 0;
-		this.xtarget = this.x;
-		this.ytarget = this.y;
-		this.distance = null;
-		this.tracked = false;
-		
-		function move() {
-			
-			// if there's a touch!
-			if (touching == true) {
-				
-				this.distance = null;
-				
-				// now you need to find out what touch you are closest to!
-				var xn, yn;
-				for (var i=0,touch;touch=touches[i];i++) {
-					
-					var hyp = Math.sqrt(Math.pow(Math.abs(this.x - touch.pageX),2) + Math.pow(Math.abs(this.y - touch.pageY),2));
-					if (hyp < this.distance || this.distance == null) {
-						this.distance = hyp;
-						this.xtarget = touch.pageX;
-						this.ytarget = touch.pageY;
-					}
-					
-				}
-				if ((this.speed - this.accel) > (speedlimit)) {
-					this.accel+=accelerator;
-				}
-			}
-			this.x = this.x - (this.x - this.xtarget)/(this.speed - this.accel);
-			this.y = this.y - (this.y - this.ytarget)/(this.speed - this.accel);
-			
-			ctx.beginPath();
-			ctx.arc(this.x,this.y,this.size,0,Math.PI*2,true);
-			ctx.closePath();
-			ctx.fillStyle = this.colour;
-			ctx.fill();
-			
-		}
-		
-		this.move = move;
-		
-		p.push(this);
-		
-	}
+	//console.log("Distance test:", 1 < 2);
+	//console.log(touches);
+	//console.log((10-20)/5);
+	//console.log(Math.sqrt(Math.pow(Math.abs(-2),2) + Math.pow(Math.abs(-3),2)));
 	
 	// input sources
 	document.ontouchstart = function(e){ e.preventDefault(); }
@@ -131,20 +75,114 @@ $(document).ready(function() {
 	});
 	$(document).on("touchend","canvas", function(e) {
 		e.preventDefault();
+		touching = false;
 		touches = event.touches;
+		console.log("TOUCH STOP")
 		if (touches.length == 0) {
-			touching = false;
 			newTarget();
 		}
+		//console.log(touches);
 	});
 
+	// Particle object
+	function Particle(radius,xp,yp,rgb,s) {
+		
+		assign++;
+		this.id = assign;
+		this.size = radius;
+		this.x = xp;
+		this.y = yp;
+		this.colour = rgb;
+		this.speed = s;
+		//console.log(this.speed);
+		this.accel = 0;
+		this.xtarget = this.x;
+		this.ytarget = this.y;
+		this.distance = null; // ********************************************** //
+		this.distances = [];
+		this.tracked = false;
+		
+		function move() {
+			
+			// if there's a touch!
+			if (touching == true) {
+				
+				
+				this.distance = null; // ********************************************** //
+				//console.log("i am touched");
+			
+			// now you need to find out what touch you are closest to!
+				var xn, yn;
+				for (var i=0,touch;touch=touches[i];i++) {
+					//console.log(touches.length);
+					
+					var hyp = Math.sqrt(Math.pow(Math.abs(this.x - touch.pageX),2) + Math.pow(Math.abs(this.y - touch.pageY),2));
+					var sum = Math.abs(this.x - touch.pageX) + Math.abs(this.y - touch.pageY);
+					//console.log("HYP " + i + " " + hyp);
+					if (hyp < this.distance || this.distance == null) {
+						this.distance = hyp;
+						this.xtarget = touch.pageX;
+						this.ytarget = touch.pageY;
+					}
+					
+				}
+				if (this.tracked == true) {
+					console.log(this.accel);
+				}
+				if ((this.speed - this.accel) > (highspeed/4)) {
+					this.accel+=0.25;
+				} else if ((this.speed - this.accel) < (highspeed/4)) {
+					this.accel = 0;
+				}
+			}
+			/*
+				this.x = this.x - (this.x - this.xtarget)/(this.speed);
+				this.y = this.y - (this.y - this.ytarget)/(this.speed);
+			*/
+			/*
+			if (this.distance > 0) {
+				if (this.tracked == true && touching == true) {
+					console.log("MOVE");
+				}
+				*/
+				
+				this.x = this.x - (this.x - this.xtarget)/(this.speed - this.accel);
+				this.y = this.y - (this.y - this.ytarget)/(this.speed - this.accel);
+				//this.accel+=0.25;
+				
+			/*
+			} else if (this.distance < 0.05) {
+				if (this.tracked == true ) {
+					console.log("STOP");
+				}
+				this.x = this.xtarget;
+				this.y = this.ytarget;
+				this.accel = 0;
+			}
+			*/
+			
+			
+			ctx.beginPath();
+			ctx.arc(this.x,this.y,this.size,0,Math.PI*2,true);
+			ctx.closePath();
+			ctx.fillStyle = this.colour;
+			ctx.fill();
+			
+		}
+		
+		this.move = move;
+		
+		p.push(this);
+		
+	}
+	
 	// Touchend burst
 	function newTarget() {
 		
 		for (var i=0,part;part=p[i];i++) {
 			
-			part.xtarget = Math.floor(Math.random() * (w*fieldsize)) - w*fieldmodifier;
-			part.ytarget = Math.floor(Math.random() * (h*fieldsize)) - h*fieldmodifier;
+			part.xtarget = Math.floor(Math.random() * (w*fieldsize)) - w;
+			part.ytarget = Math.floor(Math.random() * (h*fieldsize)) - h;
 			part.accel = 0;
 			
 		}
@@ -155,19 +193,23 @@ $(document).ready(function() {
 	function init() {
 		
 		for (var i=0;i<count;i++) {
-			var xr = Math.floor(Math.random() * (w*fieldsize)) - w*fieldmodifier;
-			var yr = Math.floor(Math.random() * (h*fieldsize)) - h*fieldmodifier;
+			var xr = Math.floor(Math.random() * (w*fieldsize)) - w;
+			var yr = Math.floor(Math.random() * (h*fieldsize)) - h;
 			var spd = Math.random() * speedrange + highspeed;
-			if (i == 0 && tracker == true) {
-				p[i] = new Particle(1.5,xr,yr,'rgba(255,255,255,1)',highspeed);
-				p[i].tracked = true;
-				console.log("TRACKER");
-				console.log(p[i].accel);
+			//console.log(spd);
+			if (i > 0) {
+			
+			//var alpha = highspeed / spd;
+			var alpha = (slowspeed - spd) / speedrange;
+			//console.log(alpha);
+			var rgba = 'rgba(255,255,255,' + alpha + ')';
+			p[i] = new Particle(2,xr,yr,rgba,spd);
 			} else {
-				var alpha = (slowspeed - spd) / speedrange;
-				var rgba = 'rgba(255,255,255,' + alpha + ')';
-				p[i] = new Particle(1.5,xr,yr,rgba,spd);
+			p[i] = new Particle(2,xr,yr,'rgba(255,255,255,1)',highspeed);
+			p[i].tracked = true;
+			console.log(p[i].accel);
 			}
+			//console.log((p[i].x - xt),(p[i].y - yt));
 		}
 		
 		update();

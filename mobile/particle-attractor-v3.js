@@ -41,80 +41,19 @@ $(document).ready(function() {
 	
 	/** PARTICLE ATTRACTOR **/
 	
-	var w = $('canvas').width();
-	var h = $('canvas').height();
-	var fieldsize = 5;
-	var fieldmodifier = 0.5*(fieldsize-1);
-	
 	var touches = [];
 	var touching = false;
-	var count = 500;
+	var xt, yt;
+	var count = 400;
 	var assign = 0;
 	var p = [];
 	
-	var highspeed = 10;
-	var slowspeed = 500;
-	var speedlimit = 1;
-	var speedrange = Math.abs(highspeed - slowspeed);
-	var accelerator = 0.25;
+	xt = 200;
+	yt = 200;
 	
-	var tracker = false;
-	
-	// Particle object
-	function Particle(radius,xp,yp,rgb,s) {
-		
-		assign++;
-		this.id = assign;
-		this.size = radius;
-		this.x = xp;
-		this.y = yp;
-		this.colour = rgb;
-		this.speed = s;
-		this.accel = 0;
-		this.xtarget = this.x;
-		this.ytarget = this.y;
-		this.distance = null;
-		this.tracked = false;
-		
-		function move() {
-			
-			// if there's a touch!
-			if (touching == true) {
-				
-				this.distance = null;
-				
-				// now you need to find out what touch you are closest to!
-				var xn, yn;
-				for (var i=0,touch;touch=touches[i];i++) {
-					
-					var hyp = Math.sqrt(Math.pow(Math.abs(this.x - touch.pageX),2) + Math.pow(Math.abs(this.y - touch.pageY),2));
-					if (hyp < this.distance || this.distance == null) {
-						this.distance = hyp;
-						this.xtarget = touch.pageX;
-						this.ytarget = touch.pageY;
-					}
-					
-				}
-				if ((this.speed - this.accel) > (speedlimit)) {
-					this.accel+=accelerator;
-				}
-			}
-			this.x = this.x - (this.x - this.xtarget)/(this.speed - this.accel);
-			this.y = this.y - (this.y - this.ytarget)/(this.speed - this.accel);
-			
-			ctx.beginPath();
-			ctx.arc(this.x,this.y,this.size,0,Math.PI*2,true);
-			ctx.closePath();
-			ctx.fillStyle = this.colour;
-			ctx.fill();
-			
-		}
-		
-		this.move = move;
-		
-		p.push(this);
-		
-	}
+	//console.log(touches);
+	//console.log((10-20)/5);
+	//console.log(Math.sqrt(Math.pow(Math.abs(-2),2) + Math.pow(Math.abs(-3),2)));
 	
 	// input sources
 	document.ontouchstart = function(e){ e.preventDefault(); }
@@ -131,21 +70,92 @@ $(document).ready(function() {
 	});
 	$(document).on("touchend","canvas", function(e) {
 		e.preventDefault();
+		touching = false;
 		touches = event.touches;
+		console.log(touches.length)
 		if (touches.length == 0) {
-			touching = false;
 			newTarget();
 		}
+		//console.log(touches);
 	});
 
+	// Particle object
+	function Particle(radius,xp,yp,rgb,s) {
+		
+		assign++;
+		this.id = assign;
+		this.size = radius;
+		this.x = xp;
+		this.y = yp;
+		this.colour = rgb;
+		this.speed = s;
+		this.xtarget = this.x;
+		this.ytarget = this.y;
+		this.distance = 9999999; // ********************************************** //
+		this.distances = [];
+		
+		function move() {
+			// if there's a touch!
+			if (touching == true) {
+				this.distance = 999999; // ********************************************** //
+				//console.log("i am touched");
+			
+			// now you need to find out what touch you are closest to!
+				var xn, yn;
+				for (var i=0,touch;touch=touches[i];i++) {
+					//console.log(touches.length);
+					
+					var hyp = Math.sqrt(Math.pow(Math.abs(this.x - touch.pageX),2) + Math.pow(Math.abs(this.y - touch.pageY),2));
+					var sum = Math.abs(this.x - touch.pageX) + Math.abs(this.y - touch.pageY);
+					//console.log("HYP " + i + " " + hyp);
+					if (hyp < this.distance) {
+						this.distance = hyp;
+						this.xtarget = touch.pageX;
+						this.ytarget = touch.pageY;
+					}
+					
+				}
+			}
+			
+			//if (touching == true) {
+				//this.xtarget = touches[0].pageX;
+				//this.ytarget = touches[0].pageY;
+			//}
+			
+			this.x = this.x - (this.x - this.xtarget)/this.speed;
+			this.y = this.y - (this.y - this.ytarget)/this.speed;
+			
+			
+			ctx.beginPath();
+			ctx.arc(this.x,this.y,this.size,0,Math.PI*2,true);
+			ctx.closePath();
+			ctx.fillStyle = this.colour;
+			ctx.fill();
+			
+			/*
+			ctx.beginPath();
+			ctx.moveTo(this.x,this.y);
+			ctx.lineTo(this.x + 0.1,this.y + 0.1);
+			ctx.lineWidth = this.size;
+			ctx.strokeStyle = this.colour;
+			ctx.lineCap = 'round';
+			ctx.stroke();
+			*/
+		}
+		
+		this.move = move;
+		
+		p.push(this);
+		
+	}
+	
 	// Touchend burst
 	function newTarget() {
 		
 		for (var i=0,part;part=p[i];i++) {
 			
-			part.xtarget = Math.floor(Math.random() * (w*fieldsize)) - w*fieldmodifier;
-			part.ytarget = Math.floor(Math.random() * (h*fieldsize)) - h*fieldmodifier;
-			part.accel = 0;
+			part.xtarget = Math.floor(Math.random() * ($('canvas').width()*3)) - $('canvas').width();
+			part.ytarget = Math.floor(Math.random() * ($('canvas').height()*3)) - $('canvas').height();
 			
 		}
 		
@@ -155,19 +165,14 @@ $(document).ready(function() {
 	function init() {
 		
 		for (var i=0;i<count;i++) {
-			var xr = Math.floor(Math.random() * (w*fieldsize)) - w*fieldmodifier;
-			var yr = Math.floor(Math.random() * (h*fieldsize)) - h*fieldmodifier;
-			var spd = Math.random() * speedrange + highspeed;
-			if (i == 0 && tracker == true) {
-				p[i] = new Particle(1.5,xr,yr,'rgba(255,255,255,1)',highspeed);
-				p[i].tracked = true;
-				console.log("TRACKER");
-				console.log(p[i].accel);
-			} else {
-				var alpha = (slowspeed - spd) / speedrange;
-				var rgba = 'rgba(255,255,255,' + alpha + ')';
-				p[i] = new Particle(1.5,xr,yr,rgba,spd);
-			}
+			var xr = Math.floor(Math.random() * ($('canvas').width()*3)) - $('canvas').width();
+			var yr = Math.floor(Math.random() * ($('canvas').height()*3)) - $('canvas').height();
+			var spd = Math.random() * (300 - 50) + 50;
+			var alpha = 50 / spd;
+			var rgba = 'rgba(255,255,255,' + alpha + ')';
+			p[i] = new Particle(2,xr,yr,rgba,spd);
+			
+			//console.log((p[i].x - xt),(p[i].y - yt));
 		}
 		
 		update();
@@ -177,8 +182,13 @@ $(document).ready(function() {
 	// drawing function
 	function update() {
 		
-		ctx.clearRect(0, 0, w, h);
+		ctx.clearRect(0, 0, $('canvas').width(), $('canvas').height());
 		
+		if (touches.length > 0) {
+			xt = touches[0].pageX;
+			yt = touches[0].pageY;			
+		}
+
 		for (var i=0;i<p.length;i++) {
 			p[i].move();
 		}

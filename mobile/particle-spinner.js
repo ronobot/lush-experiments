@@ -43,12 +43,12 @@ $(document).ready(function() {
 	
 	var w = $('canvas').width();
 	var h = $('canvas').height();
-	var fieldsize = 5;
+	var fieldsize = 3;
 	var fieldmodifier = 0.5*(fieldsize-1);
 	
 	var touches = [];
 	var touching = false;
-	var count = 500;
+	var count = 300;
 	var assign = 0;
 	var p = [];
 	
@@ -58,10 +58,16 @@ $(document).ready(function() {
 	var speedrange = Math.abs(highspeed - slowspeed);
 	var accelerator = 0.25;
 	
+	var fastorbit = 20;
+	var sloworbit = 1;
+	var orbitrange = Math.abs(fastorbit - sloworbit);
+	
+	var orbitpos = 1;
+	
 	var tracker = false;
 	
 	// Particle object
-	function Particle(radius,xp,yp,rgb,s) {
+	function Particle(radius,xp,yp,rgb,s,o,d) {
 		
 		assign++;
 		this.id = assign;
@@ -71,15 +77,20 @@ $(document).ready(function() {
 		this.colour = rgb;
 		this.speed = s;
 		this.accel = 0;
+		this.direction = d;
 		this.xtarget = this.x;
 		this.ytarget = this.y;
 		this.distance = null;
 		this.tracked = false;
+		this.orbit;
+		this.orbiting = o;
+		this.cycle = 0;
 		
 		function move() {
 			
 			// if there's a touch!
 			if (touching == true) {
+				this.cycle++;
 				
 				this.distance = null;
 				
@@ -98,15 +109,44 @@ $(document).ready(function() {
 				if ((this.speed - this.accel) > (speedlimit)) {
 					this.accel+=accelerator;
 				}
+				if (this.cycle == 1) {
+					//console.log("GO!")
+					this.orbit = Math.acos((this.x - this.xtarget)/this.distance)/(2*Math.PI);
+				}
+				/*
+				if (this.tracked == true) {
+					var check;
+					check = Math.acos((this.x - this.xtarget)/this.distance)/(2*Math.PI);
+					console.log(this.orbit);
+				}
+				*/
+				if (this.direction == 0) {
+					this.orbit+=this.orbiting;
+				} else {
+					this.orbit-=this.orbiting;
+				}
+				// new spinning movement
+				this.x = this.xtarget + (this.distance-=1) * Math.cos(2 * Math.PI * (this.orbit));
+				this.y = this.ytarget + (this.distance-=1) * Math.sin(2 * Math.PI * (this.orbit));
+			} else {
+				this.x = this.x - (this.x - this.xtarget)/(this.speed - this.accel);
+				this.y = this.y - (this.y - this.ytarget)/(this.speed - this.accel);
 			}
+			/*
 			this.x = this.x - (this.x - this.xtarget)/(this.speed - this.accel);
 			this.y = this.y - (this.y - this.ytarget)/(this.speed - this.accel);
+			*/
+			
+			
+			
 			
 			ctx.beginPath();
 			ctx.arc(this.x,this.y,this.size,0,Math.PI*2,true);
 			ctx.closePath();
 			ctx.fillStyle = this.colour;
 			ctx.fill();
+			
+			orbitpos+=0.01;
 			
 		}
 		
@@ -158,22 +198,26 @@ $(document).ready(function() {
 			var xr = Math.floor(Math.random() * (w*fieldsize)) - w*fieldmodifier;
 			var yr = Math.floor(Math.random() * (h*fieldsize)) - h*fieldmodifier;
 			var spd = Math.random() * speedrange + highspeed;
+			var orb = Math.round(Math.random() * orbitrange);
+			var dir = Math.round(Math.random() * 1);
+			//console.log(orb/orbitrange);
 			if (i == 0 && tracker == true) {
-				p[i] = new Particle(1.5,xr,yr,'rgba(255,255,255,1)',highspeed);
+				p[i] = new Particle(1.5,xr,yr,'rgba(255,255,255,1)',highspeed,1);
 				p[i].tracked = true;
-				console.log("TRACKER");
-				console.log(p[i].accel);
+				//console.log("TRACKER");
+				//console.log(p[i].accel);
 			} else {
-				var alpha = (slowspeed - spd) / speedrange;
+				//var alpha = (slowspeed - spd) / speedrange;
+				var alpha = orb/orbitrange;
 				var rgba = 'rgba(255,255,255,' + alpha + ')';
-				p[i] = new Particle(1.5,xr,yr,rgba,spd);
+				p[i] = new Particle(1.5,xr,yr,rgba,spd,orb*0.001,dir);
 			}
 		}
 		
 		update();
 		
 	}
-	
+
 	// drawing function
 	function update() {
 		
